@@ -18,23 +18,39 @@ def index():
 
 @app.route('/api/consulta/dni/<dni>', methods=['GET'])
 def consulta_dni(dni):
+    if not dni.isdigit() or len(dni) != 8:
+        return jsonify({"success": False, "error": "El DNI debe tener 8 dígitos numéricos."}), 400
+
     url = f"{API_BASE_URL}/dni/{dni}"
     try:
-        response = requests.get(url, headers=HEADERS)
-        return jsonify(response.json()), response.status_code
-    except Exception as e:
-        return jsonify({"success": False, "error": str(e)}), 500
+        response = requests.get(url, headers=HEADERS, timeout=10)
+        try:
+            body = response.json()
+        except ValueError:
+            return jsonify({"success": False, "error": "La API externa no devolvió JSON válido."}), 502
+        return jsonify(body), response.status_code
+    except requests.exceptions.RequestException as e:
+        return jsonify({"success": False, "error": f"No se pudo contactar la API externa: {e}"}), 502
 
 @app.route('/api/consulta/nombre', methods=['GET'])
 def consulta_nombre():
-    n1 = request.args.get('n1', '')
-    ap1 = request.args.get('ap1', '')
-    ap2 = request.args.get('ap2', '')
-    
-    url = f"{API_BASE_URL}/nm?n1={n1}&ap1={ap1}&ap2={ap2}"
+    n1 = request.args.get('n1', '').strip()
+    ap1 = request.args.get('ap1', '').strip()
+    ap2 = request.args.get('ap2', '').strip()
+
+    if not n1 and not ap1:
+        return jsonify({"success": False, "error": "Escribe al menos un nombre o apellido."}), 400
+
+    url = f"{API_BASE_URL}/nm"
+    params = {"n1": n1, "ap1": ap1, "ap2": ap2}
     try:
-        response = requests.get(url, headers=HEADERS)
-        return jsonify(response.json()), response.status_code
-    except Exception as e:
-        return jsonify({"success": False, "error": str(e)}), 500
-      
+        response = requests.get(url, headers=HEADERS, params=params, timeout=10)
+        try:
+            body = response.json()
+        except ValueError:
+            return jsonify({"success": False, "error": "La API externa no devolvió JSON válido."}), 502
+        return jsonify(body), response.status_code
+    except requests.exceptions.RequestException as e:
+        return jsonify({"success": False, "error": f"No se pudo contactar la API externa: {e}"}), 502
+
+    
