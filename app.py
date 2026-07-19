@@ -9,7 +9,7 @@ TOKEN = "jmdCRmBLZ13ITSmUGCWcBnDcTuOddttU7d0UbL8S7HJNelk8loSpnVkUyFJO"
 
 HEADERS = {
     "Authorization": f"Bearer {TOKEN}",
-    "Accept": "application/json"
+    "Content-Type": "application/json"
 }
 
 @app.route('/')
