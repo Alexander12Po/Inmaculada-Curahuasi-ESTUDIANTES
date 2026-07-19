@@ -13,6 +13,14 @@ HEADERS = {
     "Accept": "application/json"
 }
 
+# Headers específicos para la consulta por nombre (incluye Content-Type
+# tal como lo pide la documentación de ese endpoint)
+HEADERS_NOMBRE = {
+    "Authorization": f"Bearer {TOKEN}",
+    "Accept": "application/json",
+    "Content-Type": "application/json"
+}
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -46,7 +54,7 @@ def consulta_nombre():
     url = f"{API_BASE_URL}/nm"
     params = {"n1": n1, "ap1": ap1, "ap2": ap2}
     try:
-        response = requests.get(url, headers=HEADERS, params=params, timeout=10)
+        response = requests.get(url, headers=HEADERS_NOMBRE, params=params, timeout=10)
         try:
             body = response.json()
         except ValueError:
