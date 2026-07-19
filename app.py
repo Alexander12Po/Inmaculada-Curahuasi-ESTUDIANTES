@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify, render_template
 import requests
+import re
 
 app = Flask(__name__)
 
@@ -9,7 +10,7 @@ TOKEN = "jmdCRmBLZ13ITSmUGCWcBnDcTuOddttU7d0UbL8S7HJNelk8loSpnVkUyFJO"
 
 HEADERS = {
     "Authorization": f"Bearer {TOKEN}",
-    "Content-Type": "application/json"
+    "Accept": "application/json"
 }
 
 @app.route('/')
@@ -38,8 +39,9 @@ def consulta_nombre():
     ap1 = request.args.get('ap1', '').strip()
     ap2 = request.args.get('ap2', '').strip()
 
-    if not n1 and not ap1:
-        return jsonify({"success": False, "error": "Escribe al menos un nombre o apellido."}), 400
+    segmentos_validos = [s for s in (n1, ap1, ap2) if s and re.search(r'[A-Za-zÁÉÍÓÚÑáéíóúñ]', s)]
+    if len(segmentos_validos) < 2:
+        return jsonify({"success": False, "error": "Escribe al menos nombre y apellido (2 palabras)."}), 400
 
     url = f"{API_BASE_URL}/nm"
     params = {"n1": n1, "ap1": ap1, "ap2": ap2}
@@ -52,5 +54,4 @@ def consulta_nombre():
         return jsonify(body), response.status_code
     except requests.exceptions.RequestException as e:
         return jsonify({"success": False, "error": f"No se pudo contactar la API externa: {e}"}), 502
-
-    
+      
