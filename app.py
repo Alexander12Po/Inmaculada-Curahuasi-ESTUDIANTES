@@ -13,13 +13,12 @@ HEADERS = {
     "Accept": "application/json"
 }
 
-# Headers específicos para la consulta por nombre (incluye Content-Type
-# tal como lo pide la documentación de ese endpoint)
-HEADERS_NOMBRE = {
-    "Authorization": f"Bearer {TOKEN}",
-    "Accept": "application/json",
-    "Content-Type": "application/json"
-}
+# NOTA: la consulta por nombre usa los mismos headers que la de DNI.
+# Se probó agregar "Content-Type: application/json" (como sugería la
+# documentación) pero en una petición GET sin cuerpo esto provocó que
+# la API externa respondiera 404 en vez de procesar la consulta, así
+# que se quitó.
+HEADERS_NOMBRE = HEADERS
 
 @app.route('/')
 def index():
