@@ -13,12 +13,17 @@ HEADERS = {
     "Accept": "application/json"
 }
 
-# NOTA: la consulta por nombre usa los mismos headers que la de DNI.
-# Se probó agregar "Content-Type: application/json" (como sugería la
-# documentación) pero en una petición GET sin cuerpo esto provocó que
-# la API externa respondiera 404 en vez de procesar la consulta, así
-# que se quitó.
-HEADERS_NOMBRE = HEADERS
+# NOTA sobre este header: la API para "consulta por nombre" ha dado
+# errores inconsistentes durante las pruebas (429, luego 404 sin este
+# header, luego 415 pidiéndolo explícitamente). Esto sugiere que el
+# comportamiento errático viene del lado del proveedor de la API, no
+# de este código. Se deja el Content-Type puesto porque el error 415
+# lo exige de forma explícita.
+HEADERS_NOMBRE = {
+    "Authorization": f"Bearer {TOKEN}",
+    "Accept": "application/json",
+    "Content-Type": "application/json"
+}
 
 @app.route('/')
 def index():
@@ -57,7 +62,12 @@ def consulta_nombre():
         try:
             body = response.json()
         except ValueError:
-            return jsonify({"success": False, "error": "La API externa no devolvió JSON válido."}), 502
+            detalle = (response.text or "")[:300]
+            return jsonify({
+                "success": False,
+                "error": f"La API externa devolvió HTTP {response.status_code} sin JSON válido.",
+                "detalle": detalle
+            }), 502
         return jsonify(body), response.status_code
     except requests.exceptions.RequestException as e:
         return jsonify({"success": False, "error": f"No se pudo contactar la API externa: {e}"}), 502
